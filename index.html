@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner & Print Sunmi</title>
+    <link rel="manifest" href="manifest.json">
+    
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
+    
+    <style>
+        :root { --primary: #FC5404; }
+        body { font-family: -apple-system, sans-serif; margin: 0; padding: 20px; background: #f4f4f9; color: #333; }
+        .container { max-width: 400px; margin: auto; text-align: center; }
+        h1 { font-size: 1.5rem; margin-bottom: 20px; }
+        
+        #reader { 
+            width: 100%; 
+            border-radius: 12px; 
+            overflow: hidden; 
+            display: none; 
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .btn { 
+            background: var(--primary); 
+            color: white; 
+            padding: 18px 30px; 
+            border: none; 
+            font-size: 1.2rem; 
+            font-weight: bold;
+            border-radius: 10px; 
+            width: 100%; 
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(252, 84, 4, 0.3);
+            transition: transform 0.1s;
+        }
+        .btn:active { transform: scale(0.98); }
+
+        /* Canvas oculto - Dimensiones 58mm (384px) */
+        canvas#ticket { display: none; }
+
+        .info-status { margin-top: 15px; font-size: 0.9rem; color: #666; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Distribuidora</h1>
+        
+        <div id="reader"></div>
+        
+        <button class="btn" onclick="startScan()">📷 ESCANEAR PRODUCTO</button>
+        
+        <p class="info-status" id="status">Listo para escanear</p>
+
+        <canvas id="ticket" width="384" height="280"></canvas>
+    </div>
+
+    <script>
+        // Registrar Service Worker para que sea PWA instalable
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+
+        let html5QrCode;
+
+        function startScan() {
+            const statusText = document.getElementById('status');
+            const readerDiv = document.getElementById('reader');
+            
+            readerDiv.style.display = "block";
+            statusText.innerText = "Buscando código de barras...";
+
+            html5QrCode = new Html5Qrcode("reader");
+            
+            const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                config,
+                (decodedText) => {
+                    // Éxito en escaneo
+                    statusText.innerText = "Código detectado: " + decodedText;
+                    stopScan();
+                    generateAndPrint(decodedText);
+                },
+                (errorMessage) => { /* Errores de frame ignorados */ }
+            ).catch(err => {
+                statusText.innerText = "Error de cámara: " + err;
+            });
+        }
+
+        function stopScan() {
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    document.getElementById('reader').style.display = "none";
+                });
+            }
+        }
+
+        function generateAndPrint(barcodeValue) {
+            const canvas = document.getElementById('ticket');
+            const ctx = canvas.getContext('2d');
+            const statusText = document.getElementById('status');
+
+            // 1. Limpiar Canvas (Fondo Blanco)
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#000000";
+            ctx.textAlign = "center";
+
+            // 2. Encabezado / Descripción (Basado en tu foto)
+            ctx.font = "bold 22px Arial";
+            // Nota: En una app real, aquí buscarías el barcodeValue en tu DB
+            const descripcion = "Okebon Molino 10 semillas 231 g";
+            ctx.fillText(descripcion.toUpperCase(), 192, 35);
+
+            // 3. Línea Divisoria
+            ctx.fillRect(10, 48, 364, 2);
+
+            // 4. Precio (Protagonista)
+            ctx.font = "900 80px Arial";
+            ctx.fillText("$1920.00", 192, 130);
+
+            // 5. Código de Barras (Estilo prototipo foto 2)
+            // Renderiza el código directamente en el canvas
+            try {
+                JsBarcode(canvas, barcodeValue, {
+                    format: "EAN13",
+                    displayValue: true,
+                    fontSize: 20,
+                    height: 60,
+                    width: 2.4, // Grosor de barras para térmica
+                    marginTop: 155,
+                    textAlign: "center"
+                });
+
+                // 6. Precio de Referencia (Abajo)
+                ctx.font = "bold 18px Arial";
+                ctx.fillText("Ref. x 100 gramos $831.17", 192, 265);
+
+                // 7. Envío a RawBT
+                statusText.innerText = "Enviando a impresora...";
+                const base64Image = canvas.toDataURL('image/png').split(',')[1];
+                
+                // Esquema URL RawBT
+                window.location.href = "rawbt:image/base64," + base64Image;
+
+            } catch (e) {
+                statusText.innerText = "Error generando código: " + e.message;
+            }
+        }
+    </script>
+</body>
+</html>

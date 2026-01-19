@@ -1,0 +1,20 @@
+{
+  "name": "Etiquetas Distribuidora",
+  "short_name": "Etiquetas",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#FC5404",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192x192.png?text=Etiqueta",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512x512.png?text=Etiqueta",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

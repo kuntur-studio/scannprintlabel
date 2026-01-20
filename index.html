@@ -69,7 +69,7 @@
 
         function startScan() {
             const statusText = document.getElementById('status');
-            const readerDiv = document.getElementById('reader');
+            /*const readerDiv = document.getElementById('reader');
             
             readerDiv.style.display = "block";
             statusText.innerText = "Buscando código de barras...";
@@ -87,10 +87,11 @@
                     stopScan();
                     generateAndPrint(decodedText);
                 },
-                (errorMessage) => { /* Errores de frame ignorados */ }
+                (errorMessage) => { /* Errores de frame ignorados / }
             ).catch(err => {
                 statusText.innerText = "Error de cámara: " + err;
-            });
+            });*/
+            generateAndPrint(2015112910);
         }
 
         function stopScan() {

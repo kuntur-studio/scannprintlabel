@@ -182,8 +182,10 @@
                 // 6. Envío a Impresora Sunmi
                 const base64image = mainCanvas.toDataURL("image/png");
                 const rawBase64 = base64image.split(',')[1];
-                
+                statusElem.innerText = "Obtuvo la imagen en base64";
                 window.location.href = "SunmiPrinter://print?data=" + rawBase64;
+
+                statusElem.innerText = "Mandó a imprimir la imagen base64 al protocolo SunmiPrinter";
 
             } catch (err) {
                 if (statusElem) statusElem.innerText = "Error: " + err.message;

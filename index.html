@@ -102,59 +102,92 @@
         }
 
         function generateAndPrint(barcodeValue) {
-            const canvas = document.getElementById('ticket');
-            const ctx = canvas.getContext('2d');
-            const statusText = document.getElementById('status');
+            const mainCanvas = document.getElementById('ticket');
+            const ctx = mainCanvas.getContext('2d');
+            const statusElem = document.getElementById('status');
 
-            // Limpiar Canvas (Fondo Blanco)
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "#000000";
-            ctx.textAlign = "center";
+            // Función interna para el ajuste de línea automático
+            function wrapText(context, text, x, y, maxWidth, lineHeight) {
+                let words = text.split(' ');
+                let line = '';
+                let currentY = y;
 
-            // Renderiza el código directamente en el canvas
+                for (let n = 0; n < words.length; n++) {
+                    let testLine = line + words[n] + ' ';
+                    let metrics = context.measureText(testLine);
+                    if (metrics.width > maxWidth && n > 0) {
+                        context.fillText(line, x, currentY);
+                        line = words[n] + ' ';
+                        currentY += lineHeight;
+                    } else {
+                        line = testLine;
+                    }
+                }
+                context.fillText(line, x, currentY);
+            }
+
             try {
-                JsBarcode(canvas, barcodeValue, {
-                    format: "CODE128",
+                // 1. Configuración de dimensiones (57mm x 24mm)
+                mainCanvas.width = 456; 
+                mainCanvas.height = 192;
+
+                // 2. Canvas auxiliar para el código de barras
+                const barcodeCanvas = document.createElement('canvas');
+                JsBarcode(barcodeCanvas, barcodeValue, {
+                    format: "CODE128", 
                     displayValue: true,
-                    fontSize: 20,
-                    height: 70,
-                    width: 2, // Grosor de barras para térmica
-                    marginTop: 160,
-                    textAlign: "center"
+                    fontSize: 14,
+                    height: 35,
+                    width: 1.5,
+                    margin: 0
                 });
 
-                // Encabezado / Descripción (Basado en tu foto)
-                ctx.font = "bold 22px Arial";
+                // 3. Reseteo de seguridad y Limpieza
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.globalAlpha = 1.0;
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
 
-                // Nota: En una app real, aquí buscarías el barcodeValue en tu DB
-                const descripcion = "Okebon Molino 10 semillas 231 g";
-                ctx.fillText(descripcion.toUpperCase(), 192, 35);
+                // 4. Dibujo de Contenido
+                ctx.fillStyle = "#000000";
+                ctx.strokeStyle = "#000000";
+                ctx.textAlign = "center";
 
-                // Línea Divisoria
-                ctx.fillRect(10, 48, 364, 2);
-
-                // Precio (Protagonista)
-                ctx.font = "900 80px Arial";
-                ctx.fillText("$1920.00", 192, 130);
-
-                // Precio de Referencia (Abajo)
+                // Descripción con Wrap (incluye el peso)
                 ctx.font = "bold 18px Arial";
-                ctx.fillText("Ref. x 100 gramos $831.17", 192, 265);
+                const description = "OK MOLINO 10 SEMILLAS 231G"; // Aquí iría tu variable dinámica
+                wrapText(ctx, description, 228, 25, 420, 22);
 
-                // Envío a impresión
-                statusText.innerText = "Enviando a impresora...";
-                const base64Image = canvas.toDataURL('image/png').split(',')[1];
+                // Línea divisoria
+                ctx.beginPath();
+                ctx.lineWidth = 1;
+                ctx.moveTo(20, 55);
+                ctx.lineTo(436, 55);
+                ctx.stroke();
+
+                // Precio Principal
+                ctx.font = "900 65px Arial";
+                ctx.fillText("$1920.00", 228, 115);
+
+                // Precio de Referencia (Abajo a la derecha)
+                ctx.textAlign = "right";
+                ctx.font = "bold 12px Arial";
+                ctx.fillText("Ref x 100 gramos $831.17", 440, 180);
+
+                // 5. Copiar Código de Barras (Ubicación inferior izquierda)
+                // Lo alejamos un poco del borde para que la Sunmi no lo corte
+                ctx.drawImage(barcodeCanvas, 20, 135);
+
+                // 6. Envío a Impresora Sunmi
+                const base64image = mainCanvas.toDataURL("image/png");
+                const rawBase64 = base64image.split(',')[1];
                 
-                // // Esquema URL RawBT
-                // window.location.href = "rawbt:image/base64," + base64Image;
-                // En lugar de llamar a rawbt:, probamos el esquema nativo de Sunmi
+                window.location.href = "SunmiPrinter://print?data=" + rawBase64;
 
-                //window.location.href = "sunmiprinter://print?data=" + encodeURIComponent(base64Image);
-
-            } catch (e) {
-                const debugtext = 'barcodeValue: ' + barcodeValue + ' Error: ' + e.message + ' step: ' + step
-                statusText.innerText = debugtext;
+            } catch (err) {
+                if (statusElem) statusElem.innerText = "Error: " + err.message;
+                console.error(err);
             }
         }
     </script>

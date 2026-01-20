@@ -1,22 +1,14 @@
 {
     "0": {
-        "type": 0,
-        "content": "SAINT 1978 - TEST",
-        "bold": 1,
-        "align": 1,
-        "format" : 2
+        "type": 1,
+        "path": "https://kuntur-studio.github.io/scannprintlabel/test_image.png",
+        "align": 1
     },
     "1": {
         "type": 0,
-        "content": "PRUEBA DESDE GITHUB",
+        "content": "\n\n",
         "bold": 0,
-        "align": 1,
-        "format" : 0
-    },
-    "2": {
-        "type": 0,
-        "content": "\n\n\n",
-        "bold": 0,
-        "align": 0
+        "align": 0,
+        "format": 0
     }
 }

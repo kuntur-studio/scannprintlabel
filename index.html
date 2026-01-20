@@ -146,8 +146,11 @@
                 statusText.innerText = "Enviando a impresora...";
                 const base64Image = canvas.toDataURL('image/png').split(',')[1];
                 
-                // Esquema URL RawBT
-                window.location.href = "rawbt:image/base64," + base64Image;
+                // // Esquema URL RawBT
+                // window.location.href = "rawbt:image/base64," + base64Image;
+                // En lugar de llamar a rawbt:, probamos el esquema nativo de Sunmi
+
+                window.location.href = "sunmiprinter://print?data=" + encodeURIComponent(base64Image);
 
             } catch (e) {
                 statusText.innerText = "Error generando código: " + e.message;

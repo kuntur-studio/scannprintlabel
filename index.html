@@ -105,61 +105,52 @@
             const canvas = document.getElementById('ticket');
             const ctx = canvas.getContext('2d');
             const statusText = document.getElementById('status');
-            let step = 'init';
 
-            // 1. Limpiar Canvas (Fondo Blanco)
+            // Limpiar Canvas (Fondo Blanco)
             ctx.fillStyle = "#ffffff";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = "#000000";
             ctx.textAlign = "center";
-            step = '1';
 
-            // 2. Encabezado / Descripción (Basado en tu foto)
-            ctx.font = "bold 22px Arial";
-            // Nota: En una app real, aquí buscarías el barcodeValue en tu DB
-            const descripcion = "Okebon Molino 10 semillas 231 g";
-            ctx.fillText(descripcion.toUpperCase(), 192, 35);
-            step = '2';
-
-            // 3. Línea Divisoria
-            ctx.fillRect(10, 48, 364, 2);
-            step = '3';
-
-            // 4. Precio (Protagonista)
-            ctx.font = "900 80px Arial";
-            ctx.fillText("$1920.00", 192, 130);
-            step = '4';
-
-            // 5. Código de Barras (Estilo prototipo foto 2)
             // Renderiza el código directamente en el canvas
             try {
                 JsBarcode(canvas, barcodeValue, {
-                    format: "UPC-A",
+                    format: "CODE128",
                     displayValue: true,
                     fontSize: 20,
-                    height: 60,
-                    width: 2.4, // Grosor de barras para térmica
-                    marginTop: 155,
+                    height: 70,
+                    width: 2, // Grosor de barras para térmica
+                    marginTop: 160,
                     textAlign: "center"
                 });
 
-                step = '5';
+                // Encabezado / Descripción (Basado en tu foto)
+                ctx.font = "bold 22px Arial";
 
-                // 6. Precio de Referencia (Abajo)
+                // Nota: En una app real, aquí buscarías el barcodeValue en tu DB
+                const descripcion = "Okebon Molino 10 semillas 231 g";
+                ctx.fillText(descripcion.toUpperCase(), 192, 35);
+
+                // Línea Divisoria
+                ctx.fillRect(10, 48, 364, 2);
+
+                // Precio (Protagonista)
+                ctx.font = "900 80px Arial";
+                ctx.fillText("$1920.00", 192, 130);
+
+                // Precio de Referencia (Abajo)
                 ctx.font = "bold 18px Arial";
                 ctx.fillText("Ref. x 100 gramos $831.17", 192, 265);
-                step = '6';
 
-                // 7. Envío a RawBT
+                // Envío a impresión
                 statusText.innerText = "Enviando a impresora...";
                 const base64Image = canvas.toDataURL('image/png').split(',')[1];
-                step = '7';
                 
                 // // Esquema URL RawBT
                 // window.location.href = "rawbt:image/base64," + base64Image;
                 // En lugar de llamar a rawbt:, probamos el esquema nativo de Sunmi
 
-                window.location.href = "sunmiprinter://print?data=" + encodeURIComponent(base64Image);
+                //window.location.href = "sunmiprinter://print?data=" + encodeURIComponent(base64Image);
 
             } catch (e) {
                 const debugtext = 'barcodeValue: ' + barcodeValue + ' Error: ' + e.message + ' step: ' + step
